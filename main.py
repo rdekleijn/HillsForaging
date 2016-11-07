@@ -68,12 +68,19 @@ class App:
     def on_init(self):
         if self.debug is False:
             self.subjectID = raw_input("Enter subject ID: ")
+            while self.condition not in ("d", "c", "r"):
+                self.condition = raw_input("Condition: (d)iffuse, (c)lustered, (r)andom: ")
+                if self.condition == "r":
+                    self.condition = random.choice(("c", "d"))
         pygame.init()
         self.clock = pygame.time.Clock()
         self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self._running = True
         self.env = Environment()
-        self.mapSurface = self.env.gen_diffuse()
+        if self.condition == "d":
+            self.mapSurface = self.env.gen_diffuse()
+        elif self.condition == "c":
+            self.mapSurface = self.env.gen_patchy()
         self.seenSurface = pygame.Surface((200, 200), flags=0)
         self.seenSurface.fill((0, 0, 0))
         self.agent = Agent()
@@ -95,7 +102,7 @@ class App:
         seenpxarray = pygame.PixelArray(self.seenSurface)
         if self.visiblePath is True: seenpxarray[position[0], position[1]] = pygame.Color(255, 255, 255)
         if mappxarray[position[0],position[1]] > 0:
-            seenpxarray[position[0], position[1]] = pygame.Color(255, 0, 255)
+            seenpxarray[position[0], position[1]] = pygame.Color(0, 255, 0)
             if position != self.agent.last_int_pos:
                 self.agent.total_food += 1
         self.agent.last_int_pos = position
@@ -124,7 +131,7 @@ class App:
 
 
 if __name__ == "__main__":
-    theApp = App(debug=True)
+    theApp = App(debug=False)
     theApp.on_execute()
 
 
