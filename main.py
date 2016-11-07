@@ -76,12 +76,28 @@ class App:
         loc = (int(round(self.agent.position[0]*3)), int(round(self.agent.position[1]*3)))
         polygon_points = rotatePolygon([[0, 10], [-5, -10], [5, -10]], (self.agent.direction + 270)%360)
         polygon_points = movePolygon(polygon_points,loc[0],loc[1])
-        pygame.draw.polygon(self._display_surf, (255, 255, 255), polygon_points, 2)
+        pygame.draw.polygon(self._display_surf, (255, 255, 255), polygon_points, 0)
 
         font = pygame.font.Font(None, 40)
         text = font.render("score: " + str(self.agent.total_food), 1, (200, 200, 200))
         textpos = text.get_rect(topright=(self._display_surf.get_width() - 10, 10))
         self._display_surf.blit(text, textpos)
+
+    def init_datafile(self, filename=None):
+        if filename is None:
+            filename = str(self.subjectID) + ".txt"
+        f = open(filename, 'w')
+        output = 'subjectID,condition,timestamp,food_eaten,turn_angle\n'
+        f.write(output)
+        f.close()
+
+    def write_data(self, filename=None):
+        if filename is None:
+            filename = str(self.subjectID) + ".txt"
+        f = open(filename, 'a')
+        output = str(self.subjectID) + self.condition + str(timer() - self.start_time) + str(self.agent.total_food) + str(self.agent.total_turned)
+        f.write(output)
+        f.close()
 
     def on_init(self):
         if self.debug is False:
@@ -91,6 +107,7 @@ class App:
                 if self.condition == "r":
                     self.condition = random.choice(("c", "d"))
         pygame.init()
+        self.init_datafile()
         self.clock = pygame.time.Clock()
         self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
         self._running = True
