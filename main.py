@@ -3,6 +3,7 @@ from math import sin, cos, radians
 import numpy as np
 from pygame.locals import *
 from timeit import default_timer as timer
+import time
 
 
 def rotatePolygon(polygon,theta):
@@ -25,7 +26,7 @@ def movePolygon(polygon,x,y):
 class Agent:
     def __init__(self):
         self.position = (100.0, 100.0)
-        self.speed = 0.333
+        self.speed = 0
         self.direction = random.randint(0,359)
         self.total_turned = 0
         self.total_food = 0
@@ -86,6 +87,13 @@ class App:
         textpos = text.get_rect(topright=(self._display_surf.get_width() - 10, 10))
         self._display_surf.blit(text, textpos)
 
+        if timer() - self.trialStartTime < 3:
+            font = pygame.font.Font(None, 40)
+            text = font.render("GET READY!", 1, (200, 200, 200))
+            textpos = text.get_rect(center=(self._display_surf.get_width() / 2, self._display_surf.get_height() / 3))
+            self._display_surf.blit(text, textpos)
+
+
     def init_datafile(self, filename=None):
         if filename is None:
             filename = str(self.subjectID) + ".txt"
@@ -98,7 +106,7 @@ class App:
         if filename is None:
             filename = str(self.subjectID) + ".txt"
         f = open(filename, 'a')
-        output = str(self.subjectID) + self.condition + str(timer() - self.start_time) + str(self.agent.total_food) + str(self.agent.total_turned)
+        output = str(self.subjectID) + self.condition + str(timer() - self.trialStartTime) + str(self.agent.total_food) + str(self.agent.total_turned)
         f.write(output)
         f.close()
 
@@ -113,17 +121,6 @@ class App:
         self.init_datafile()
         self.clock = pygame.time.Clock()
         self._display_surf = pygame.display.set_mode(self.size, pygame.HWSURFACE | pygame.DOUBLEBUF)
-        self._running = True
-        self.env = Environment()
-        if self.condition == "d":
-            self.mapSurface = self.env.gen_diffuse()
-        elif self.condition == "c":
-            self.mapSurface = self.env.gen_patchy()
-        self.seenSurface = pygame.Surface((200, 200), flags=0)
-        self.seenSurface.fill((0, 0, 0))
-        self.agent = Agent()
-        self.start_time = timer()
-        self.write_data()
 
     def on_event(self, event):
         if event.type == pygame.QUIT:
@@ -136,6 +133,8 @@ class App:
             self.agent.total_turned += 35
 
     def on_loop(self):
+        if self.agent.speed == 0 and timer() - self.trialStartTime > 3:
+            self.agent.speed = 0.333
         self.agent.move()
         position = (int(round(self.agent.position[0])),int(round(self.agent.position[1])))
         mappxarray = pygame.PixelArray(self.mapSurface)
@@ -156,16 +155,35 @@ class App:
     def on_cleanup(self):
         pygame.quit()
 
-    def on_execute(self):
-        if self.on_init() == False:
-            self._running = False
-
+    def run_trial(self, trialNum):
+        self._running = True
+        self.env = Environment()
+        if self.condition == "d":
+            self.mapSurface = self.env.gen_diffuse()
+        elif self.condition == "c":
+            self.mapSurface = self.env.gen_patchy()
+        self.seenSurface = pygame.Surface((200, 200), flags=0)
+        self.seenSurface.fill((0, 0, 0))
+        self.agent = Agent()
+        self.trialStartTime = timer()
+        self.write_data()
         while (self._running):
             self.clock.tick(60)
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_loop()
             self.on_render()
+            if timer()-self.trialStartTime > 5.0:
+                self._running = False
+
+
+    def on_execute(self):
+        if self.on_init() == False:
+            self._running = False
+
+        for trialNum in range(2):
+            self.run_trial(trialNum)
+
         self.on_cleanup()
 
 
