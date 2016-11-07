@@ -2,6 +2,7 @@ import pygame, random, sys, os
 from math import sin, cos, radians
 import numpy as np
 from pygame.locals import *
+from timeit import default_timer as timer
 
 
 def rotatePolygon(polygon,theta):
@@ -67,6 +68,8 @@ class App:
         self.size = self.width, self.height = 600, 600
         self.subjectID = 0
         self.condition = 'diffuse'
+        self.trialNum = 0
+        self.trialStartTime = 0
         if self.debug is True:
             self.visiblePath = True
         else:
@@ -119,6 +122,8 @@ class App:
         self.seenSurface = pygame.Surface((200, 200), flags=0)
         self.seenSurface.fill((0, 0, 0))
         self.agent = Agent()
+        self.start_time = timer()
+        self.write_data()
 
     def on_event(self, event):
         if event.type == pygame.QUIT:
