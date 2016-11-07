@@ -57,9 +57,12 @@ class App:
             self.visiblePath = False
 
     def draw_info_overlay(self):
-        font = pygame.font.SysFont("monospace", 40)
+        loc = (int(round(self.agent.position[0]*3)), int(round(self.agent.position[1]*3)))
+        pygame.draw.circle(self._display_surf, (255, 255, 255), loc, 7)
+
+        font = pygame.font.Font(None, 40)
         text = font.render("score: " + str(self.agent.total_food), 1, (200, 200, 200))
-        textpos = text.get_rect(centerx=self._display_surf.get_width() / 2)
+        textpos = text.get_rect(topright=(self._display_surf.get_width() - 10, 10))
         self._display_surf.blit(text, textpos)
 
     def on_init(self):
