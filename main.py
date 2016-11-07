@@ -11,7 +11,6 @@ class Agent:
         self.direction = random.randint(0,359)
         self.total_turned = 0
         self.total_food = 0
-        self.last_int_pos = (int(round(self.position[0])),int(round(self.position[1])))
 
     def move(self):
         self.position = (self.position[0] + self.speed * cos(radians(self.direction)),
@@ -105,7 +104,6 @@ class App:
             if seenpxarray[position[0],position[1]] == 0:
                 self.agent.total_food += 1
             seenpxarray[position[0], position[1]] = pygame.Color(0, 255, 0)
-        self.agent.last_int_pos = position
 
     def on_render(self):
         black = 0, 0, 0
