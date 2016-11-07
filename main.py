@@ -1,7 +1,24 @@
-import pygame, random
+import pygame, random, sys, os
 from math import sin, cos, radians
 import numpy as np
 from pygame.locals import *
+
+
+def rotatePolygon(polygon,theta):
+    """Rotates the given polygon which consists of corners represented as (x,y),
+    around the ORIGIN, clock-wise, theta degrees"""
+    theta = radians(theta)
+    rotatedPolygon = []
+    for corner in polygon:
+        rotatedPolygon.append(( corner[0]*cos(theta)-corner[1]*sin(theta) , corner[0]*sin(theta)+corner[1]*cos(theta)) )
+    return rotatedPolygon
+
+def movePolygon(polygon,x,y):
+    """Moves the given polygon which consists of corners represented as (x,y)"""
+    movedPolygon = []
+    for corner in polygon:
+        movedPolygon.append(( corner[0]+x , corner[1]+y))
+    return movedPolygon
 
 
 class Agent:
@@ -57,7 +74,9 @@ class App:
 
     def draw_info_overlay(self):
         loc = (int(round(self.agent.position[0]*3)), int(round(self.agent.position[1]*3)))
-        pygame.draw.circle(self._display_surf, (255, 255, 255), loc, 7)
+        polygon_points = rotatePolygon([[0, 10], [-5, -10], [5, -10]], (self.agent.direction + 270)%360)
+        polygon_points = movePolygon(polygon_points,loc[0],loc[1])
+        pygame.draw.polygon(self._display_surf, (255, 255, 255), polygon_points, 2)
 
         font = pygame.font.Font(None, 40)
         text = font.render("score: " + str(self.agent.total_food), 1, (200, 200, 200))
