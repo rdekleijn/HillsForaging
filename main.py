@@ -102,9 +102,9 @@ class App:
         seenpxarray = pygame.PixelArray(self.seenSurface)
         if self.visiblePath is True: seenpxarray[position[0], position[1]] = pygame.Color(255, 255, 255)
         if mappxarray[position[0],position[1]] > 0:
-            seenpxarray[position[0], position[1]] = pygame.Color(0, 255, 0)
-            if position != self.agent.last_int_pos:
+            if seenpxarray[position[0],position[1]] == 0:
                 self.agent.total_food += 1
+            seenpxarray[position[0], position[1]] = pygame.Color(0, 255, 0)
         self.agent.last_int_pos = position
 
     def on_render(self):
