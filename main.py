@@ -22,6 +22,11 @@ def movePolygon(polygon,x,y):
         movedPolygon.append(( corner[0]+x , corner[1]+y))
     return movedPolygon
 
+def clockHand(size, theta, xloc, yloc):
+    dx = int(cos(radians(-theta))*size)
+    dy = int(sin(radians(-theta))*size)
+    return xloc + dx, yloc + dy
+
 
 class Agent:
     def __init__(self):
@@ -90,7 +95,7 @@ class App:
 
         font = pygame.font.Font(None, 40)
         text = font.render("score: " + str(self.agent.total_food), 1, (200, 200, 200))
-        textpos = text.get_rect(topright=(self._display_surf.get_width() - 10, 10))
+        textpos = text.get_rect(topleft=(10, 10))
         self._display_surf.blit(text, textpos)
 
         if timer() - self.trialStartTime < 3:
@@ -99,6 +104,12 @@ class App:
             textpos = text.get_rect(center=(self._display_surf.get_width() / 2, self._display_surf.get_height() / 3))
             self._display_surf.blit(text, textpos)
 
+        if timer() - self.trialStartTime >= 3:
+            pygame.draw.circle(self._display_surf, (128, 128, 128),
+                               (self._display_surf.get_width() - 30, 30), 15)
+            xpos, ypos = clockHand(15, (timer()*180)%360, self._display_surf.get_width() - 30, 30)
+            pygame.draw.line(self._display_surf, (255, 255, 255), (self._display_surf.get_width() - 30, 30),
+                             (xpos,ypos), 2)
 
     def init_datafile(self, filename=None):
         if filename is None:
