@@ -53,11 +53,17 @@ class Environment:
 
     def gen_patchy(self, num_patches=4):
         mapSurface = pygame.Surface((200, 200), flags=0)
-        mapSurface.fill((0,0,0))
-        for i in range(num_patches):
-            xpos = random.randint(0,200)
-            ypos = random.randint(0,200)
-            pygame.draw.polygon(mapSurface, (0,0,255), ((xpos-19,ypos),(xpos,ypos-19),(xpos+19,ypos),(xpos,ypos+19)))
+        overlaps = True
+        while overlaps is True:
+            mapSurface.fill((0,0,0))
+            for i in range(num_patches):
+                xpos = random.randint(0+19,200-19)
+                ypos = random.randint(0+19,200-19)
+                pygame.draw.polygon(mapSurface, (0,0,255), ((xpos-19,ypos),(xpos,ypos-19),(xpos+19,ypos),(xpos,ypos+19)))
+            pxarray = pygame.PixelArray(mapSurface)
+            if np.count_nonzero(np.array(pxarray) == 0) == 36956: # If patches don't overlap there are 36956 black pixels
+                overlaps = False
+        print np.count_nonzero(np.array(pxarray) == 0)
         return mapSurface
 
 
