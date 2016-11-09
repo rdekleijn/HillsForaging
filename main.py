@@ -98,7 +98,7 @@ class App:
         if filename is None:
             filename = str(self.subjectID) + ".txt"
         f = open(filename, 'w')
-        output = 'subjectID,condition,timestamp,food_eaten,turn_angle\n'
+        output = 'subjectID,condition,trial_num,timestamp,food_eaten,turn_angle\n'
         f.write(output)
         f.close()
 
@@ -106,7 +106,9 @@ class App:
         if filename is None:
             filename = str(self.subjectID) + ".txt"
         f = open(filename, 'a')
-        output = str(self.subjectID) + self.condition + str(timer() - self.trialStartTime) + str(self.agent.total_food) + str(self.agent.total_turned)
+        output = str(self.subjectID) + "," + self.condition + "," + str(self.trialNum) + "," + \
+                str(timer() - self.trialStartTime) + "," + str(self.agent.total_food) + \
+                "," + str(self.agent.total_turned) + "\n"
         f.write(output)
         f.close()
 
@@ -157,6 +159,7 @@ class App:
 
     def run_trial(self, trialNum):
         self._running = True
+        self.trialNum = trialNum
         self.env = Environment()
         if self.condition == "d":
             self.mapSurface = self.env.gen_diffuse()
@@ -166,22 +169,21 @@ class App:
         self.seenSurface.fill((0, 0, 0))
         self.agent = Agent()
         self.trialStartTime = timer()
-        self.write_data()
         while (self._running):
             self.clock.tick(60)
             for event in pygame.event.get():
                 self.on_event(event)
             self.on_loop()
             self.on_render()
-            if timer()-self.trialStartTime > 5.0:
+            if timer()-self.trialStartTime > 10.0:
                 self._running = False
-
+        self.write_data()
 
     def on_execute(self):
         if self.on_init() == False:
             self._running = False
 
-        for trialNum in range(2):
+        for trialNum in range(3):
             self.run_trial(trialNum)
 
         self.on_cleanup()
