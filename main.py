@@ -35,6 +35,11 @@ class Agent:
         self.direction = random.randint(0,359)
         self.total_turned = 0
         self.total_food = 0
+        self.total_turned_after_food = 0
+        self.last_food_time = 0
+        self.last_angle = self.direction
+        self.last_angle_timestamp = timer()
+        self.total_avg_turned = 0
 
     def move(self):
         self.position = (self.position[0] + self.speed * cos(radians(self.direction)),
@@ -68,7 +73,6 @@ class Environment:
             pxarray = pygame.PixelArray(mapSurface)
             if np.count_nonzero(np.array(pxarray) == 0) == 36956: # If patches don't overlap there are 36956 black pixels
                 overlaps = False
-        print np.count_nonzero(np.array(pxarray) == 0)
         return mapSurface
 
 
@@ -115,7 +119,7 @@ class App:
         if filename is None:
             filename = str(self.subjectID) + ".txt"
         f = open(filename, 'w')
-        output = 'subjectID,condition,trial_num,timestamp,food_eaten,turn_angle\n'
+        output = 'subjectID,condition,trial_num,timestamp,food_eaten,turn_angle,angle_after_food,total_avg_turned\n'
         f.write(output)
         f.close()
 
@@ -125,7 +129,8 @@ class App:
         f = open(filename, 'a')
         output = str(self.subjectID) + "," + self.condition + "," + str(self.trialNum) + "," + \
                 str(timer() - self.trialStartTime) + "," + str(self.agent.total_food) + \
-                "," + str(self.agent.total_turned) + "\n"
+                "," + str(self.agent.total_turned) + "," + str(self.agent.total_turned_after_food) + "," + \
+                 str(self.agent.total_avg_turned) + "\n"
         f.write(output)
         f.close()
 
@@ -147,14 +152,22 @@ class App:
         elif event.type == KEYDOWN and event.key == K_j:
             self.agent.direction = (self.agent.direction - 35)%360
             self.agent.total_turned += 35
+            if timer() - self.agent.last_food_time < 0.3 and self.agent.last_food_time > 0:
+                self.agent.total_turned_after_food += 35
         elif event.type == KEYDOWN and event.key == K_l:
             self.agent.direction = (self.agent.direction + 35)%360
             self.agent.total_turned += 35
+            if timer() - self.agent.last_food_time < 0.3 and self.agent.last_food_time > 0:
+                self.agent.total_turned_after_food += 35
 
     def on_loop(self):
         if self.agent.speed == 0 and timer() - self.trialStartTime > 3:
             self.agent.speed = 0.333
         self.agent.move()
+        if timer() - self.agent.last_angle_timestamp > 0.3:
+            self.agent.total_avg_turned += abs((((self.agent.direction - self.agent.last_angle) + 180) % 360) - 180)
+            self.agent.last_angle = self.agent.direction
+            self.agent.last_angle_timestamp = timer()
         position = (int(round(self.agent.position[0])),int(round(self.agent.position[1])))
         mappxarray = pygame.PixelArray(self.mapSurface)
         seenpxarray = pygame.PixelArray(self.seenSurface)
@@ -162,6 +175,7 @@ class App:
         if mappxarray[position[0],position[1]] > 0:
             if seenpxarray[position[0],position[1]] == 0:
                 self.agent.total_food += 1
+                self.agent.last_food_time = timer()
             seenpxarray[position[0], position[1]] = pygame.Color(0, 255, 0)
 
     def on_render(self):
@@ -192,7 +206,7 @@ class App:
                 self.on_event(event)
             self.on_loop()
             self.on_render()
-            if timer()-self.trialStartTime > 10.0:
+            if timer()-self.trialStartTime > 20.0:
                 self._running = False
         self.write_data()
 
@@ -200,7 +214,7 @@ class App:
         if self.on_init() == False:
             self._running = False
 
-        for trialNum in range(3):
+        for trialNum in range(2):
             self.run_trial(trialNum)
 
         self.on_cleanup()
